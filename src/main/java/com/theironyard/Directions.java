@@ -22,7 +22,7 @@ public class Directions {
 
     public Directions(String distance, String duration, double endLat,
                       double endLong, double startLat, double startLong
-                      //,String zipCode, String route
+                      ,String zipCode, String route
                       ) {
         this.distance = distance;
         this.duration = duration;
@@ -30,8 +30,8 @@ public class Directions {
         this.endLong = endLong;
         this.startLat = startLat;
         this.startLong = startLong;
-        //this.zipCode = zipCode;
-        //this.route = route;
+        this.zipCode = zipCode;
+        this.route = route;
     }
 
     public String getDistance() {

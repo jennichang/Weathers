@@ -116,20 +116,23 @@ public class WeathersController {
             JSONObject routeObject = geoResultsArray.getJSONObject(0);
             JSONArray addressComponentsArray = routeObject.getJSONArray("address_components");
 
+            String route = "";
+            String zipCode = "";
+
             for(int j = 0; j < addressComponentsArray.length(); j++) {
                 JSONObject tempObject = addressComponentsArray.getJSONObject(j);
-                if (tempObject.getString("type").equals("route")) {
-                    String routeName = tempObject.getString("short_name");
-                } else if(tempObject.getString("type").equals("postal_code")) {
-                    String zipCode = tempObject.getString("postal_code");
-                } break;
+                JSONArray typeArray = tempObject.getJSONArray("types");
+                if (typeArray.toString().contains("route")) {
+                    route = tempObject.getString("short_name");
+                } else if(typeArray.toString().contains("postal_code")) {
+                    zipCode = tempObject.getString("short_name");
+                } else {
+                    break;
+                }
             }
 
-
-
-
-
-            Directions directions = new Directions(distanceText, durationText, endLat, endLng, startLat, startLng);
+            Directions directions =
+                    new Directions(distanceText, durationText, endLat, endLng, startLat, startLng, zipCode, route);
             directionsArray.add(directions);
         }
 
