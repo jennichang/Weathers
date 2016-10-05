@@ -127,17 +127,15 @@ public class WeathersController {
                 JSONArray typeArray = tempObject.getJSONArray("types");
                 if (typeArray.toString().contains("route")) {
                     route = tempObject.getString("short_name");
-
-
-
                 } else if(typeArray.toString().contains("postal_code")) {
                     zipCode = tempObject.getString("short_name");
                 }
             }
-
-            Directions directions =
-                    new Directions(distance, duration, endLat, endLng, startLat, startLng, zipCode, route);
-            directionsArray.add(directions);
+            if(route !="" && zipCode !="") {
+                Directions directions =
+                        new Directions(distance, duration, endLat, endLng, startLat, startLng, zipCode, route);
+                directionsArray.add(directions);
+            }
         }
 
 
