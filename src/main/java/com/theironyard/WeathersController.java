@@ -52,6 +52,7 @@ public class WeathersController {
 
 
     //Post route to get the inputted data (starting location, ending location, start time)
+    @CrossOrigin
     @RequestMapping(path = "/", method = RequestMethod.POST)
     public String locationInputs(HttpSession session, String startLocation, String endLocation,
                                  String startTime) throws FileNotFoundException {
