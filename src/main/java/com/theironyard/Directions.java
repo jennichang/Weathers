@@ -12,7 +12,7 @@ import java.util.Scanner;
  */
 public class Directions {
     String distance;
-    String duration;
+    int duration;
     double endLat;
     double endLong;
     double startLat;
@@ -20,7 +20,7 @@ public class Directions {
     String zipCode;
     String route;
 
-    public Directions(String distance, String duration, double endLat,
+    public Directions(String distance, int duration, double endLat,
                       double endLong, double startLat, double startLong
                       ,String zipCode, String route
                       ) {
@@ -42,11 +42,11 @@ public class Directions {
         this.distance = distance;
     }
 
-    public String getDuration() {
+    public int getDuration() {
         return duration;
     }
 
-    public void setDuration(String duration) {
+    public void setDuration(int duration) {
         this.duration = duration;
     }
 

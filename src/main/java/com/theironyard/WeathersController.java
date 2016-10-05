@@ -43,6 +43,7 @@ public class WeathersController {
 //    }
 
 
+    @CrossOrigin
     @RequestMapping(path = "/", method = RequestMethod.GET)
     public String home(HttpSession session, Model model) {
 
@@ -53,13 +54,14 @@ public class WeathersController {
     //Post route to get the inputted data (starting location, ending location, start time)
     @RequestMapping(path = "/", method = RequestMethod.POST)
     public String locationInputs(HttpSession session, String startLocation, String endLocation,
-                                 String dateTime) throws FileNotFoundException {
-        Location userLocation = new Location(startLocation, endLocation, dateTime);
+                                 String startTime) throws FileNotFoundException {
+        Location userLocation = new Location(startLocation, endLocation, startTime);
         session.setAttribute("userLocation", userLocation);
 
         // Call Google API
         RestTemplate restTemplate = new RestTemplate();
-        Map<String, String> vars = new HashMap<String, String>();
+        Map<String, String> vars = new HashMap<>();
+        ArrayList<Directions> directionsArray = new ArrayList<>();
 
         vars.put("startingLocation", startLocation);
         vars.put("endingLocation", endLocation);
@@ -72,28 +74,28 @@ public class WeathersController {
         //parse json file, put all steps as objects into an arraylist
         JSONObject resultsObject = new JSONObject(result);
         JSONArray routesArray = resultsObject.getJSONArray("routes");
-        JSONObject firstObject = routesArray.getJSONObject(0);
-        JSONArray legsArray = firstObject.getJSONArray("legs");
-        JSONObject secondObject = legsArray.getJSONObject(0);
-        JSONArray stepsArray = secondObject.getJSONArray("steps");
 
-        ArrayList<Directions> directionsArray = new ArrayList<>();
+        JSONArray legsArray = JSONParse.ObjectToArray(routesArray, "legs", 0);
+
+        JSONArray stepsArray = JSONParse.ObjectToArray(legsArray, "steps", 0);
 
         for (int i = 0; i < stepsArray.length(); i++) {
             JSONObject object = stepsArray.getJSONObject(i);
-            JSONObject duration = object.getJSONObject("duration");
-            String durationText = duration.getString("text");
-            JSONObject startLoc = object.getJSONObject("start_location");
-            double startLng = startLoc.getDouble("lng");
-            double startLat = startLoc.getDouble("lat");
-            JSONObject endLoc = object.getJSONObject("end_location");
-            double endLng = endLoc.getDouble("lng");
-            double endLat = endLoc.getDouble("lat");
-            JSONObject distance = object.getJSONObject("distance");
-            String distanceText = distance.getString("text");
+
+            int duration = JSONParse.objectToInteger(object, "duration", "value");
+
+            LatLong startLatLong = JSONParse.objectToLatLong(object, "start_location");
+            double startLng = startLatLong.getLng();
+            double startLat = startLatLong.getLat();
+
+            LatLong endLatLong = JSONParse.objectToLatLong(object, "end_location");
+            double endLng = endLatLong.getLng();
+            double endLat = endLatLong.getLat();
+
+            String distance = JSONParse.objectToString(object, "distance", "text");
 
             //call google geocoding
-            Map<String, String> varsGeo = new HashMap<String, String>();
+            Map<String, String> varsGeo = new HashMap<>();
 
             varsGeo.put("startLng", String.valueOf(startLng));
             varsGeo.put("startLat", String.valueOf(startLat));
@@ -113,8 +115,8 @@ public class WeathersController {
             //parse json files
             JSONObject geoStart = new JSONObject(geoResultStart);
             JSONArray geoResultsArray = geoStart.getJSONArray("results");
-            JSONObject routeObject = geoResultsArray.getJSONObject(0);
-            JSONArray addressComponentsArray = routeObject.getJSONArray("address_components");
+
+            JSONArray addressComponentsArray = JSONParse.ObjectToArray(geoResultsArray, "address_components", 0);
 
             String route = "";
             String zipCode = "";
@@ -124,15 +126,16 @@ public class WeathersController {
                 JSONArray typeArray = tempObject.getJSONArray("types");
                 if (typeArray.toString().contains("route")) {
                     route = tempObject.getString("short_name");
+
+
+
                 } else if(typeArray.toString().contains("postal_code")) {
                     zipCode = tempObject.getString("short_name");
-                } else {
-                    break;
                 }
             }
 
             Directions directions =
-                    new Directions(distanceText, durationText, endLat, endLng, startLat, startLng, zipCode, route);
+                    new Directions(distance, duration, endLat, endLng, startLat, startLng, zipCode, route);
             directionsArray.add(directions);
         }
 
@@ -151,4 +154,37 @@ public class WeathersController {
 //
 
 
+
 }
+
+
+
+
+
+
+/* Leftover code
+
+        JSONObject firstObject = routesArray.getJSONObject(0);
+        JSONArray legsArray = firstObject.getJSONArray("legs");
+        JSONObject secondObject = legsArray.getJSONObject(0);
+        JSONArray stepsArray = secondObject.getJSONArray("steps");
+
+
+
+                        JSONObject duration = object.getJSONObject("duration");
+                        String durationText = duration.getString("text");
+            JSONObject startLoc = object.getJSONObject("start_location");
+            double startLng = startLoc.getDouble("lng");
+            double startLat = startLoc.getDouble("lat");
+                        JSONObject endLoc = object.getJSONObject("end_location");
+            double endLng = endLoc.getDouble("lng");
+            double endLat = endLoc.getDouble("lat");
+            JSONObject distance = object.getJSONObject("distance");
+            String distanceText = distance.getString("text");
+
+
+                        JSONObject routeObject = geoResultsArray.getJSONObject(0);
+            JSONArray addressComponentsArray = routeObject.getJSONArray("address_components");
+
+
+ */
