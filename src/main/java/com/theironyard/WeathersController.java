@@ -1,5 +1,6 @@
 package com.theironyard;
 
+import jodd.json.JsonParser;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.http.HttpMethod;
@@ -15,13 +16,19 @@ import javax.servlet.http.HttpSession;
 import javax.xml.transform.Source;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Scanner;
+
+import org.json.*;
 
 import static org.springframework.http.HttpHeaders.USER_AGENT;
 
@@ -49,7 +56,7 @@ public class WeathersController {
     //Post route to get the inputted data (starting location, ending location, start time)
     @RequestMapping(path = "/", method = RequestMethod.POST)
     public String locationInputs(HttpSession session, String startLocation, String endLocation,
-                                 String dateTime) {
+                                 String dateTime) throws FileNotFoundException {
         Location userLocation = new Location(startLocation, endLocation, dateTime);
         session.setAttribute("userLocation", userLocation);
 
@@ -62,68 +69,50 @@ public class WeathersController {
         vars.put("APIKey", "AIzaSyASODlUfJtSvv-LqhnprK2jcaJ_rbThy9E");
         String result = restTemplate
                 .getForObject(
-                        //"https://maps.googleapis.com/maps/api/directions/json?origin=Toronto&destination=Montreal&key={APIKey}",
                         "https://maps.googleapis.com/maps/api/directions/json?origin={startingLocation}&destination={endingLocation}&key={APIKey}",
-
                         String.class, vars);
 
-        return "redirect:/summary";
+        //parse json file
+        JSONObject resultsObject = new JSONObject(result);
+        JSONArray routesArray = resultsObject.getJSONArray("routes");
+        JSONObject firstObject = routesArray.getJSONObject(0);
+        JSONArray legsArray = firstObject.getJSONArray("legs");
+        JSONObject secondObject = legsArray.getJSONObject(0);
+        JSONArray stepsArray = secondObject.getJSONArray("steps");
+
+        ArrayList<Directions> directionsArray= new ArrayList<>();
+
+        for (int i = 0; i < stepsArray.length(); i++) {
+            JSONObject object = stepsArray.getJSONObject(i);
+            JSONObject duration = object.getJSONObject("duration");
+            String durationText = duration.getString("text");
+            JSONObject startLoc = object.getJSONObject("start_location");
+            double startLng = startLoc.getDouble("lng");
+            double startLat = startLoc.getDouble("lat");
+            JSONObject endLoc = object.getJSONObject("end_location");
+            double endLng = endLoc.getDouble("lng");
+            double endLat = endLoc.getDouble("lat");
+            JSONObject distance = object.getJSONObject("distance");
+            String distanceText = distance.getString("text");
+
+            Directions directions = new Directions(distanceText, durationText, endLat, endLng, startLat, startLng);
+            directionsArray.add(directions);
+
+
+
+        }
+
+
+        return "html";
     }
 
+
     // Get route for summary page
-        // need to return a
-    @RequestMapping(path = "/summary", method = RequestMethod.GET)
-    public String summary(HttpSession session, Model model) {
-
-
-
-
-
-
-
-
-
-//
-//    // Post route to call Google Directions API
-//    @RequestMapping(path = "/googleInfo", method = RequestMethod.POST)
-//    public String locationInputs(HttpSession session) {
-//        Location userLocation = (Location) session.getAttribute("userLocation");
-//
-//        String startLocation = userLocation.getStartLocation();
-//        String endLocation = userLocation.getEndLocation();
+    // need to return a
+//    @RequestMapping(path = "/summary", method = RequestMethod.GET)
+//    public String summary(HttpSession session, Model model) {
 //
 //
-//        RestTemplate restTemplate = new RestTemplate();
-//        Map<String, String> vars = new HashMap<String, String>();
-//
-//        vars.put("startingLocation", startLocation);
-//        vars.put("endingLocation", endLocation);
-//        vars.put("APIKey", "AIzaSyASODlUfJtSvv-LqhnprK2jcaJ_rbThy9E");
-//        String result = restTemplate
-//                .getForObject(
-//                        //"https://maps.googleapis.com/maps/api/directions/json?origin=Toronto&destination=Montreal&key={APIKey}",
-//                        "https://maps.googleapis.com/maps/api/directions/json?origin={startingLocation}&destination={endingLocation}&key={APIKey}",
-//
-//                        String.class, vars);
-//
-//        return "redirect:/";
-//    }
-
-
-//
-//    @RequestMapping(method = RequestMethod.POST)
-//    public String weatherPost(@ModelAttribute City city, State state, ModelMap model) throws URISyntaxException {
-//        String apiKey="myApIKey";//Removed my original API Key for posting.
-//        RestTemplate template = new RestTemplate();
-//        String strUri= "http://api.wunderground.com/api/" + apiKey + "/hourly/q/" + state + "/" + city + ".json";
-//        URI uri = new URI(strUri);
-//        RequestEntity<String> request = new RequestEntity<String>(HttpMethod.GET,uri);
-//        ResponseEntity <WeatherResponse> weatherResponse = template.exchange(uri, HttpMethod.GET, request, WeatherResponse.class);
-//        City myCity = new City();
-//        model.put("weatherResponse", weatherResponse);
-//        model.put("city", myCity);
-//        return "weather";
-//    }
 
 
 }
