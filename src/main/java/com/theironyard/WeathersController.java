@@ -23,10 +23,7 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 
 import org.json.*;
 
@@ -72,7 +69,7 @@ public class WeathersController {
                         "https://maps.googleapis.com/maps/api/directions/json?origin={startingLocation}&destination={endingLocation}&key={APIKey}",
                         String.class, vars);
 
-        //parse json file
+        //parse json file, put all steps as objects into an arraylist
         JSONObject resultsObject = new JSONObject(result);
         JSONArray routesArray = resultsObject.getJSONArray("routes");
         JSONObject firstObject = routesArray.getJSONObject(0);
@@ -80,7 +77,7 @@ public class WeathersController {
         JSONObject secondObject = legsArray.getJSONObject(0);
         JSONArray stepsArray = secondObject.getJSONArray("steps");
 
-        ArrayList<Directions> directionsArray= new ArrayList<>();
+        ArrayList<Directions> directionsArray = new ArrayList<>();
 
         for (int i = 0; i < stepsArray.length(); i++) {
             JSONObject object = stepsArray.getJSONObject(i);
@@ -95,15 +92,41 @@ public class WeathersController {
             JSONObject distance = object.getJSONObject("distance");
             String distanceText = distance.getString("text");
 
+            //call google geocoding
+            Map<String, String> varsGeo = new HashMap<String, String>();
+
+            varsGeo.put("startLng", String.valueOf(startLng));
+            varsGeo.put("startLat", String.valueOf(startLat));
+            varsGeo.put("endLng", String.valueOf(endLng));
+            varsGeo.put("endLat", String.valueOf(endLat));
+            varsGeo.put("APIKey", "AIzaSyCcSbnI5cLmMWebMjAx63Wab2jp-_6UFF4");
+            String GeoResultStart = restTemplate
+                    .getForObject(
+                            "https://maps.googleapis.com/maps/api/geocode/json?latlng={startLat},{startLng}&key={APIKey}",
+                            String.class, varsGeo);
+            String GeoResultEnd = restTemplate
+                    .getForObject(
+                            "https://maps.googleapis.com/maps/api/geocode/json?latlng={endLat},{endLng}&key={APIKey}",
+                            String.class, varsGeo);
+
+
+            //parse json files
+            JSONObject GeoStart = new JSONObject(GeoResultStart);
+            JSONArray geoResultsArray = GeoStart.getJSONArray("results");
+            JSONObject geoResultsObject = geoResultsArray.getJSONObject(0);
+            JSONArray addressArray = geoResultsObject.getJSONArray("address_components");
+
+
+
+
             Directions directions = new Directions(distanceText, durationText, endLat, endLng, startLat, startLng);
             directionsArray.add(directions);
-
-
-
         }
 
 
-        return "html";
+        //call google
+
+        return "redirect:/";
     }
 
 

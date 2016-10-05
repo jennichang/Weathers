@@ -17,14 +17,21 @@ public class Directions {
     double endLong;
     double startLat;
     double startLong;
+    String zipCode;
+    String route;
 
-    public Directions(String distance, String duration, double endLat, double endLong, double startLat, double startLong) {
+    public Directions(String distance, String duration, double endLat,
+                      double endLong, double startLat, double startLong
+                      //,String zipCode, String route
+                      ) {
         this.distance = distance;
         this.duration = duration;
         this.endLat = endLat;
         this.endLong = endLong;
         this.startLat = startLat;
         this.startLong = startLong;
+        //this.zipCode = zipCode;
+        //this.route = route;
     }
 
     public String getDistance() {
@@ -73,5 +80,21 @@ public class Directions {
 
     public void setStartLong(double startLong) {
         this.startLong = startLong;
+    }
+
+    public String getZipCode() {
+        return zipCode;
+    }
+
+    public void setZipCode(String zipCode) {
+        this.zipCode = zipCode;
+    }
+
+    public String getRoute() {
+        return route;
+    }
+
+    public void setRoute(String route) {
+        this.route = route;
     }
 }
