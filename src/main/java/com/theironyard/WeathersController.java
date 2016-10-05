@@ -100,21 +100,31 @@ public class WeathersController {
             varsGeo.put("endLng", String.valueOf(endLng));
             varsGeo.put("endLat", String.valueOf(endLat));
             varsGeo.put("APIKey", "AIzaSyCcSbnI5cLmMWebMjAx63Wab2jp-_6UFF4");
-            String GeoResultStart = restTemplate
+            String geoResultStart = restTemplate
                     .getForObject(
                             "https://maps.googleapis.com/maps/api/geocode/json?latlng={startLat},{startLng}&key={APIKey}",
                             String.class, varsGeo);
-            String GeoResultEnd = restTemplate
+            String geoResultEnd = restTemplate
                     .getForObject(
                             "https://maps.googleapis.com/maps/api/geocode/json?latlng={endLat},{endLng}&key={APIKey}",
                             String.class, varsGeo);
 
 
             //parse json files
-            JSONObject GeoStart = new JSONObject(GeoResultStart);
-            JSONArray geoResultsArray = GeoStart.getJSONArray("results");
-            JSONObject geoResultsObject = geoResultsArray.getJSONObject(0);
-            JSONArray addressArray = geoResultsObject.getJSONArray("address_components");
+            JSONObject geoStart = new JSONObject(geoResultStart);
+            JSONArray geoResultsArray = geoStart.getJSONArray("results");
+            JSONObject routeObject = geoResultsArray.getJSONObject(0);
+            JSONArray addressComponentsArray = routeObject.getJSONArray("address_components");
+
+            for(int j = 0; j < addressComponentsArray.length(); j++) {
+                JSONObject tempObject = addressComponentsArray.getJSONObject(j);
+                if (tempObject.getString("type").equals("route")) {
+                    String routeName = tempObject.getString("short_name");
+                } else if(tempObject.getString("type").equals("postal_code")) {
+                    String zipCode = tempObject.getString("postal_code");
+                } break;
+            }
+
 
 
 
