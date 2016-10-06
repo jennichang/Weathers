@@ -1,40 +1,18 @@
 package com.theironyard;
 
 
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.RequestEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
-import javax.net.ssl.HttpsURLConnection;
 import javax.servlet.http.HttpSession;
-import javax.xml.transform.Source;
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.FileNotFoundException;
-import java.io.InputStreamReader;
-import java.lang.reflect.Array;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.sql.Timestamp;
-import java.text.DateFormat;
 import java.util.*;
 
 import org.json.*;
 
-import static org.springframework.http.HttpHeaders.USER_AGENT;
 
-/**
- * Created by jenniferchang on 10/3/16.
- */
 @Controller
 @EnableAutoConfiguration
 public class WeathersController {
@@ -55,8 +33,6 @@ public class WeathersController {
         return "test";
     }
 
-
-    //Post route to get the inputted data (starting location, ending location, start time)
     @CrossOrigin
     @RequestMapping(path = "/", method = RequestMethod.POST)
     public String locationInputs(HttpSession session, String startLocation, String endLocation, /** would FE be able to give me dateTime with timezone?**/
@@ -133,33 +109,30 @@ public class WeathersController {
 
             /** call wunderground geo API, first need to get state, city and timezone **/
 
+
+
             JSONObject wundergroundStart = new JSONObject(WundergroundAPI.wundergroundCall(startZipCode));
             String startCity = JSONParse.objectToString(wundergroundStart, "location", "city");
             String startState = JSONParse.objectToString(wundergroundStart, "location", "state");
             String startTimeZone = JSONParse.objectToString(wundergroundStart, "location", "tz_short");
+
+            javax.xml.bind.DatatypeConverter.parseDateTime("2010-01-01T12:00:00Z");
 
             JSONObject wundergroundEnd = new JSONObject(WundergroundAPI.wundergroundCall(endZipCode));
             String endCity = JSONParse.objectToString(wundergroundStart, "location", "city");
             String endState = JSONParse.objectToString(wundergroundStart, "location", "state");
             String endTimeZone = JSONParse.objectToString(wundergroundStart, "location", "tz_short");
 
+            // for the weather info, i need state, city, hour, month, day, year
 
 
 
 
-
-            //directionsArray.add(directionsNoWeather);
         }
 
 
         return "redirect:/";
     }
-
-
-
-
-
-
 
 
     /**
@@ -185,33 +158,3 @@ public class WeathersController {
 }
 
 
-
-
-
-
-/* Leftover code
-
-        JSONObject firstObject = routesArray.getJSONObject(0);
-        JSONArray legsArray = firstObject.getJSONArray("legs");
-        JSONObject secondObject = legsArray.getJSONObject(0);
-        JSONArray stepsArray = secondObject.getJSONArray("steps");
-
-
-
-                        JSONObject duration = object.getJSONObject("duration");
-                        String durationText = duration.getString("text");
-            JSONObject startLoc = object.getJSONObject("start_location");
-            double startLng = startLoc.getDouble("lng");
-            double startLat = startLoc.getDouble("lat");
-                        JSONObject endLoc = object.getJSONObject("end_location");
-            double endLng = endLoc.getDouble("lng");
-            double endLat = endLoc.getDouble("lat");
-            JSONObject distance = object.getJSONObject("distance");
-            String distanceText = distance.getString("text");
-
-
-                        JSONObject routeObject = geoResultsArray.getJSONObject(0);
-            JSONArray addressComponentsArray = routeObject.getJSONArray("address_components");
-
-
- */
