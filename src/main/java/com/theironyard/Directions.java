@@ -10,21 +10,26 @@ public class Directions {
     double endLong;
     double startLat;
     double startLong;
-    String zipCode;
-    String route;
+    String startZipCode;
+    String startRoute;
+    String endZipCode;
+    String endRoute;
+
+
 
     public Directions(String distance, int duration, double endLat,
-                      double endLong, double startLat, double startLong
-                      ,String zipCode, String route
-                      ) {
+                      double endLong, double startLat, double startLong, String startZipCode,
+                      String startRoute, String endZipCode, String endRoute) {
         this.distance = distance;
         this.duration = duration;
         this.endLat = endLat;
         this.endLong = endLong;
         this.startLat = startLat;
         this.startLong = startLong;
-        this.zipCode = zipCode;
-        this.route = route;
+        this.startZipCode = startZipCode;
+        this.startRoute = startRoute;
+        this.endZipCode = endZipCode;
+        this.endRoute = endRoute;
     }
 
     public String getDistance() {
@@ -75,19 +80,35 @@ public class Directions {
         this.startLong = startLong;
     }
 
-    public String getZipCode() {
-        return zipCode;
+    public String getStartZipCode() {
+        return startZipCode;
     }
 
-    public void setZipCode(String zipCode) {
-        this.zipCode = zipCode;
+    public void setStartZipCode(String startZipCode) {
+        this.startZipCode = startZipCode;
     }
 
-    public String getRoute() {
-        return route;
+    public String getStartRoute() {
+        return startRoute;
     }
 
-    public void setRoute(String route) {
-        this.route = route;
+    public void setStartRoute(String startRoute) {
+        this.startRoute = startRoute;
+    }
+
+    public String getEndZipCode() {
+        return endZipCode;
+    }
+
+    public void setEndZipCode(String endZipCode) {
+        this.endZipCode = endZipCode;
+    }
+
+    public String getEndRoute() {
+        return endRoute;
+    }
+
+    public void setEndRoute(String endRoute) {
+        this.endRoute = endRoute;
     }
 }

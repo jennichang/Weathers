@@ -3,6 +3,7 @@ package com.theironyard;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.RequestEntity;
 import org.springframework.stereotype.Controller;
@@ -23,6 +24,8 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.sql.Timestamp;
+import java.text.DateFormat;
 import java.util.*;
 
 import org.json.*;
@@ -54,12 +57,14 @@ public class WeathersController {
     //Post route to get the inputted data (starting location, ending location, start time)
     @CrossOrigin
     @RequestMapping(path = "/", method = RequestMethod.POST)
-    public String locationInputs(HttpSession session, String startLocation, String endLocation,
+    public String locationInputs(HttpSession session, String startLocation, String endLocation, /** would FE be able to give me dateTime with timezone?**/
                                  String startTime) throws FileNotFoundException {
         Location userLocation = new Location(startLocation, endLocation, startTime);
         session.setAttribute("userLocation", userLocation);
 
-        // Call Google API
+        UserStart userStart = new UserStart(00000, )
+
+        /** Call Google Driving API **/
         RestTemplate restTemplate = new RestTemplate();
         Map<String, String> vars = new HashMap<>();
         ArrayList<Directions> directionsArray = new ArrayList<>();
@@ -72,7 +77,7 @@ public class WeathersController {
                         "https://maps.googleapis.com/maps/api/directions/json?origin={startingLocation}&destination={endingLocation}&key={APIKey}",
                         String.class, vars);
 
-        //parse json file, put all steps as objects into an arraylist
+        /** Google driving API parse JSON **/
         JSONObject resultsObject = new JSONObject(result);
         JSONArray routesArray = resultsObject.getJSONArray("routes");
 
@@ -80,6 +85,7 @@ public class WeathersController {
 
         JSONArray stepsArray = JSONParse.ObjectToArray(legsArray, "steps", 0);
 
+        /** For every step, get information I need **/
         for (int i = 0; i < stepsArray.length(); i++) {
             JSONObject object = stepsArray.getJSONObject(i);
 
@@ -95,7 +101,7 @@ public class WeathersController {
 
             String distance = JSONParse.objectToString(object, "distance", "text");
 
-            //call google geocoding
+            /** call google geocoding API, feed in start and end lat and long **/
             Map<String, String> varsGeo = new HashMap<>();
 
             varsGeo.put("startLng", String.valueOf(startLng));
@@ -113,34 +119,63 @@ public class WeathersController {
                             String.class, varsGeo);
 
 
-            //parse json files
+            /** parse json files -- each step start **/
             JSONObject geoStart = new JSONObject(geoResultStart);
-            JSONArray geoResultsArray = geoStart.getJSONArray("results");
+            JSONArray geoStartResults = geoStart.getJSONArray("results");
 
-            JSONArray addressComponentsArray = JSONParse.ObjectToArray(geoResultsArray, "address_components", 0);
+            JSONArray addressStartComponentsArray = JSONParse.ObjectToArray(geoStartResults, "address_components", 0);
 
-            String route = "";
-            String zipCode = "";
+            /** parse json files -- each step end **/
+            JSONObject geoEnd = new JSONObject(geoResultEnd);
+            JSONArray geoEndResults = geoStart.getJSONArray("results");
 
-            for(int j = 0; j < addressComponentsArray.length(); j++) {
-                JSONObject tempObject = addressComponentsArray.getJSONObject(j);
+            JSONArray addressEndComponentsArray = JSONParse.ObjectToArray(geoEndResults, "address_components", 0);
+
+            /** get zip code and routes for start and end **/
+            String startRoute = "";
+            String startZipCode = "";
+
+            for (int j = 0; j < addressStartComponentsArray.length(); j++) {
+                JSONObject tempObject = addressStartComponentsArray.getJSONObject(j);
                 JSONArray typeArray = tempObject.getJSONArray("types");
                 if (typeArray.toString().contains("route")) {
-                    route = tempObject.getString("short_name");
-                } else if(typeArray.toString().contains("postal_code")) {
-                    zipCode = tempObject.getString("short_name");
+                    startRoute = tempObject.getString("short_name");
+                } else if (typeArray.toString().contains("postal_code")) {
+                    startZipCode = tempObject.getString("short_name");
                 }
             }
-            if(route !="" && zipCode !="") {
-                Directions directions =
-                        new Directions(distance, duration, endLat, endLng, startLat, startLng, zipCode, route);
-                directionsArray.add(directions);
+
+            String endRoute = "";
+            String endZipCode = "";
+
+            for (int k = 0; k < addressEndComponentsArray.length(); k++) {
+                JSONObject tempObject = addressEndComponentsArray.getJSONObject(k);
+                JSONArray typeArray = tempObject.getJSONArray("types");
+                if (typeArray.toString().contains("route")) {
+                    endRoute = tempObject.getString("short_name");
+                } else if (typeArray.toString().contains("postal_code")) {
+                    endZipCode = tempObject.getString("short_name");
+                }
             }
+
+            // make new direction object and add to directions array
+            Directions directionsNoWeather =
+                    new Directions(distance, duration, endLat, endLng, startLat, startLng, startZipCode, startRoute, endZipCode, endRoute);
+
+
+
+
+
+
+
+
+
+
+
+            //directionsArray.add(directions);
         }
 
-
-        //call google
-
+        // Now need to call weather API
         return "redirect:/";
     }
 
@@ -151,7 +186,6 @@ public class WeathersController {
 //    public String summary(HttpSession session, Model model) {
 //
 //
-
 
 
 }
