@@ -35,7 +35,7 @@ import static org.springframework.http.HttpHeaders.USER_AGENT;
 /**
  * Created by jenniferchang on 10/3/16.
  */
-@Controller
+@RestController
 @EnableAutoConfiguration
 public class WeathersController {
 
@@ -59,10 +59,10 @@ public class WeathersController {
     @RequestMapping(path = "/", method = RequestMethod.POST)
     public String locationInputs(HttpSession session, String startLocation, String endLocation, /** would FE be able to give me dateTime with timezone?**/
                                  String startTime) throws FileNotFoundException {
-        Location userLocation = new Location(startLocation, endLocation, startTime);
+        Location userLocation = new Location(startLocation, endLocation, "2011-10-05T14:48:00.000Z"); //while testing
         session.setAttribute("userLocation", userLocation);
 
-        UserStart userStart = new UserStart(00000, )
+        UserStart userStart = new UserStart("00000", "2011-10-05T14:48:00.000Z"); // placeholder zipcode
 
         /** Call Google Driving API **/
         RestTemplate restTemplate = new RestTemplate();
@@ -181,11 +181,22 @@ public class WeathersController {
 
 
     // Get route for summary page
-    // need to return a
-//    @RequestMapping(path = "/summary", method = RequestMethod.GET)
-//    public String summary(HttpSession session, Model model) {
-//
-//
+
+    @RequestMapping(path = "/summary", method = RequestMethod.GET)
+    public Location summary(String startLocation, String endLocation, String startTime) {
+        Location location = new Location(startLocation, endLocation, startTime);
+
+        return location;
+    }
+
+    @RequestMapping(path = "/directions", method = RequestMethod.GET)
+    public Location directions(String startLocation, String endLocation, String startTime) {
+        Location location = new Location(startLocation, endLocation, startTime);
+
+        return location;
+    }
+
+
 
 
 }

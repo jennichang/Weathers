@@ -2,17 +2,27 @@ package com.theironyard;
 
 
 public class UserStart {
-    String startZipCode;
-    int month;
-    int day;
-    int year;
-    String timeZone;
+    private String startZipCode;
+    private String timeUTC;
 
-    public UserStart(String startZipCode, int month, int day, int year, String timeZone) {
+    public UserStart(String startZipCode, String timeUTC) {
         this.startZipCode = startZipCode;
-        this.month = month;
-        this.day = day;
-        this.year = year;
-        this.timeZone = timeZone;
+        this.timeUTC = timeUTC;
+    }
+
+    public String getStartZipCode() {
+        return startZipCode;
+    }
+
+    public void setStartZipCode(String startZipCode) {
+        this.startZipCode = startZipCode;
+    }
+
+    public String getTimeUTC() {
+        return timeUTC;
+    }
+
+    public void setTimeUTC(String timeUTC) {
+        this.timeUTC = timeUTC;
     }
 }
