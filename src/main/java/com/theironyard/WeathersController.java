@@ -35,7 +35,7 @@ import static org.springframework.http.HttpHeaders.USER_AGENT;
 /**
  * Created by jenniferchang on 10/3/16.
  */
-@RestController
+@Controller
 @EnableAutoConfiguration
 public class WeathersController {
 
@@ -44,6 +44,8 @@ public class WeathersController {
 //    String home() {
 //        return "Hello World!";
 //    }
+
+    ArrayList<Directions> directionsArray = new ArrayList<>();
 
 
     @CrossOrigin
@@ -65,20 +67,8 @@ public class WeathersController {
         UserStart userStart = new UserStart("00000", "2011-10-05T14:48:00.000Z"); // placeholder zipcode
 
         /** Call Google Driving API **/
-        RestTemplate restTemplate = new RestTemplate();
-        Map<String, String> vars = new HashMap<>();
-        ArrayList<Directions> directionsArray = new ArrayList<>();
 
-        vars.put("startingLocation", startLocation);
-        vars.put("endingLocation", endLocation);
-        vars.put("APIKey", "AIzaSyASODlUfJtSvv-LqhnprK2jcaJ_rbThy9E");
-        String result = restTemplate
-                .getForObject(
-                        "https://maps.googleapis.com/maps/api/directions/json?origin={startingLocation}&destination={endingLocation}&key={APIKey}",
-                        String.class, vars);
-
-        /** Google driving API parse JSON **/
-        JSONObject resultsObject = new JSONObject(result);
+        JSONObject resultsObject = new JSONObject(GoogleDrivingAPI.googleDrivingCall(startLocation, endLocation));
         JSONArray routesArray = resultsObject.getJSONArray("routes");
 
         JSONArray legsArray = JSONParse.ObjectToArray(routesArray, "legs", 0);
@@ -102,31 +92,14 @@ public class WeathersController {
             String distance = JSONParse.objectToString(object, "distance", "text");
 
             /** call google geocoding API, feed in start and end lat and long **/
-            Map<String, String> varsGeo = new HashMap<>();
 
-            varsGeo.put("startLng", String.valueOf(startLng));
-            varsGeo.put("startLat", String.valueOf(startLat));
-            varsGeo.put("endLng", String.valueOf(endLng));
-            varsGeo.put("endLat", String.valueOf(endLat));
-            varsGeo.put("APIKey", "AIzaSyCcSbnI5cLmMWebMjAx63Wab2jp-_6UFF4");
-            String geoResultStart = restTemplate
-                    .getForObject(
-                            "https://maps.googleapis.com/maps/api/geocode/json?latlng={startLat},{startLng}&key={APIKey}",
-                            String.class, varsGeo);
-            String geoResultEnd = restTemplate
-                    .getForObject(
-                            "https://maps.googleapis.com/maps/api/geocode/json?latlng={endLat},{endLng}&key={APIKey}",
-                            String.class, varsGeo);
-
-
-            /** parse json files -- each step start **/
-            JSONObject geoStart = new JSONObject(geoResultStart);
+            JSONObject geoStart = new JSONObject(GoogleGeocodingAPI.googleGeocodingCall(startLng, startLat));
             JSONArray geoStartResults = geoStart.getJSONArray("results");
 
             JSONArray addressStartComponentsArray = JSONParse.ObjectToArray(geoStartResults, "address_components", 0);
 
             /** parse json files -- each step end **/
-            JSONObject geoEnd = new JSONObject(geoResultEnd);
+            JSONObject geoEnd = new JSONObject(GoogleGeocodingAPI.googleGeocodingCall(endLng, endLat));
             JSONArray geoEndResults = geoStart.getJSONArray("results");
 
             JSONArray addressEndComponentsArray = JSONParse.ObjectToArray(geoEndResults, "address_components", 0);
@@ -163,28 +136,35 @@ public class WeathersController {
                     new Directions(distance, duration, endLat, endLng, startLat, startLng, startZipCode, startRoute, endZipCode, endRoute);
 
 
+            /** call wunderground API, first need to get state, city and timezone **/
+
+            JSONObject wundergroundStart = new JSONObject(WundergroundAPI.wundergroundCall(startZipCode));
+            String city = JSONParse.objectToString(wundergroundStart, "location", "city");
+            String state = JSONParse.objectToString(wundergroundStart, "location", "state");
 
 
-
-
-
-
-
-
-
-            //directionsArray.add(directions);
+            directionsArray.add(directionsNoWeather);
         }
 
-        // Now need to call weather API
+
         return "redirect:/";
     }
 
 
-    // Get route for summary page
+
+
+
+
+    
+
+    /**
+     * placeholders for now....need to figure out how to do these get routes and have it work with the post routes
+     **/
 
     @RequestMapping(path = "/summary", method = RequestMethod.GET)
     public Location summary(String startLocation, String endLocation, String startTime) {
         Location location = new Location(startLocation, endLocation, startTime);
+
 
         return location;
     }
@@ -195,8 +175,6 @@ public class WeathersController {
 
         return location;
     }
-
-
 
 
 }
