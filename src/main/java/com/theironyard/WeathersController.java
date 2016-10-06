@@ -7,7 +7,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
+import javax.xml.bind.DatatypeConverter;
 import java.io.FileNotFoundException;
+import java.text.ParseException;
 import java.util.*;
 
 import org.json.*;
@@ -35,8 +37,8 @@ public class WeathersController {
 
     @CrossOrigin
     @RequestMapping(path = "/", method = RequestMethod.POST)
-    public String locationInputs(HttpSession session, String startLocation, String endLocation, /** would FE be able to give me dateTime with timezone?**/
-                                 String startTime) throws FileNotFoundException {
+    public String locationInputs(HttpSession session, String startLocation, String endLocation,
+                                 String startTime) throws FileNotFoundException, ParseException {
         Location userLocation = new Location(startLocation, endLocation, "2011-10-05T14:48:00.000Z"); //while testing
         session.setAttribute("userLocation", userLocation);
 
@@ -52,7 +54,11 @@ public class WeathersController {
         JSONArray stepsArray = JSONParse.ObjectToArray(legsArray, "steps", 0);
 
         /** For every step, get information I need **/
+        //counter to keep track of time
+        Calendar cal = DatatypeConverter.parseDateTime("2011-10-05T14:48:00.000Z");
+
         for (int i = 0; i < stepsArray.length(); i++) {
+
             JSONObject object = stepsArray.getJSONObject(i);
 
             int duration = JSONParse.objectToInteger(object, "duration", "value");
@@ -110,22 +116,41 @@ public class WeathersController {
             /** call wunderground geo API, first need to get state, city and timezone **/
 
 
-
             JSONObject wundergroundStart = new JSONObject(WundergroundAPI.wundergroundCall(startZipCode));
             String startCity = JSONParse.objectToString(wundergroundStart, "location", "city");
             String startState = JSONParse.objectToString(wundergroundStart, "location", "state");
-            String startTimeZone = JSONParse.objectToString(wundergroundStart, "location", "tz_short");
+            String startTimeZone = JSONParse.objectToString(wundergroundStart, "location", "tz_long");
 
-            javax.xml.bind.DatatypeConverter.parseDateTime("2010-01-01T12:00:00Z");
 
             JSONObject wundergroundEnd = new JSONObject(WundergroundAPI.wundergroundCall(endZipCode));
             String endCity = JSONParse.objectToString(wundergroundStart, "location", "city");
             String endState = JSONParse.objectToString(wundergroundStart, "location", "state");
-            String endTimeZone = JSONParse.objectToString(wundergroundStart, "location", "tz_short");
+            String endTimeZone = JSONParse.objectToString(wundergroundStart, "location", "tz_long");
 
-            // for the weather info, i need state, city, hour, month, day, year
+            //get start and end time of step:
+            Calendar startTimeCal = cal;
+            Calendar endTimeCal = startTimeCal;
+            endTimeCal.add(Calendar.SECOND, duration);
+
+            //now use the time to get the weather, first convert to time zone
+
+            String startDateTimeZoned = Time.convertTime(startTimeCal, startTimeZone);
+            String endDateTimeZoned = Time.convertTime(endTimeCal, endTimeZone);
+
+            String startYear = String.valueOf(Time.convertToCalendar(startDateTimeZoned).get(Calendar.YEAR));
+            String endYear = String.valueOf(Time.convertToCalendar(endDateTimeZoned).get(Calendar.YEAR));
+
+            String startMonth = String.valueOf(Time.convertToCalendar(startDateTimeZoned).get(Calendar.MONTH) + 1);
+            String endMonth = String.valueOf(Time.convertToCalendar(endDateTimeZoned).get(Calendar.MONTH) + 1);
+
+            String startDate = String.valueOf(Time.convertToCalendar(startDateTimeZoned).get(Calendar.DATE));
+            String endDate = String.valueOf(Time.convertToCalendar(endDateTimeZoned).get(Calendar.DATE));
+
+            String startHour = String.valueOf(Time.roundHour(Time.convertToCalendar(startDateTimeZoned)));
+            String endHour = String.valueOf(Time.roundHour(Time.convertToCalendar(endDateTimeZoned)));
 
 
+            cal = endTimeCal;
 
 
         }
