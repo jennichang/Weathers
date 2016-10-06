@@ -131,19 +131,24 @@ public class WeathersController {
                 }
             }
 
-            // make new direction object and add to directions array
-            Directions directionsNoWeather =
-                    new Directions(distance, duration, endLat, endLng, startLat, startLng, startZipCode, startRoute, endZipCode, endRoute);
-
-
-            /** call wunderground API, first need to get state, city and timezone **/
+            /** call wunderground geo API, first need to get state, city and timezone **/
 
             JSONObject wundergroundStart = new JSONObject(WundergroundAPI.wundergroundCall(startZipCode));
-            String city = JSONParse.objectToString(wundergroundStart, "location", "city");
-            String state = JSONParse.objectToString(wundergroundStart, "location", "state");
+            String startCity = JSONParse.objectToString(wundergroundStart, "location", "city");
+            String startState = JSONParse.objectToString(wundergroundStart, "location", "state");
+            String startTimeZone = JSONParse.objectToString(wundergroundStart, "location", "tz_short");
+
+            JSONObject wundergroundEnd = new JSONObject(WundergroundAPI.wundergroundCall(endZipCode));
+            String endCity = JSONParse.objectToString(wundergroundStart, "location", "city");
+            String endState = JSONParse.objectToString(wundergroundStart, "location", "state");
+            String endTimeZone = JSONParse.objectToString(wundergroundStart, "location", "tz_short");
 
 
-            directionsArray.add(directionsNoWeather);
+
+
+
+
+            //directionsArray.add(directionsNoWeather);
         }
 
 
@@ -155,7 +160,7 @@ public class WeathersController {
 
 
 
-    
+
 
     /**
      * placeholders for now....need to figure out how to do these get routes and have it work with the post routes

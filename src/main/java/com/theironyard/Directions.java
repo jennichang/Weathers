@@ -12,14 +12,18 @@ public class Directions {
     double startLong;
     String startZipCode;
     String startRoute;
+    String startCity;
+    String startState;
     String endZipCode;
     String endRoute;
+    String endCity;
+    String endState;
+    String startTimeZone;
+    String endTimeZone;
 
-
-
-    public Directions(String distance, int duration, double endLat,
-                      double endLong, double startLat, double startLong, String startZipCode,
-                      String startRoute, String endZipCode, String endRoute) {
+    public Directions(String distance, int duration, double endLat, double endLong, double startLat, double startLong,
+                      String startZipCode, String startRoute, String startCity, String startState, String endZipCode,
+                      String endRoute, String endCity, String endState, String startTimeZone, String endTimeZone) {
         this.distance = distance;
         this.duration = duration;
         this.endLat = endLat;
@@ -28,8 +32,14 @@ public class Directions {
         this.startLong = startLong;
         this.startZipCode = startZipCode;
         this.startRoute = startRoute;
+        this.startCity = startCity;
+        this.startState = startState;
         this.endZipCode = endZipCode;
         this.endRoute = endRoute;
+        this.endCity = endCity;
+        this.endState = endState;
+        this.startTimeZone = startTimeZone;
+        this.endTimeZone = endTimeZone;
     }
 
     public String getDistance() {
@@ -96,6 +106,22 @@ public class Directions {
         this.startRoute = startRoute;
     }
 
+    public String getStartCity() {
+        return startCity;
+    }
+
+    public void setStartCity(String startCity) {
+        this.startCity = startCity;
+    }
+
+    public String getStartState() {
+        return startState;
+    }
+
+    public void setStartState(String startState) {
+        this.startState = startState;
+    }
+
     public String getEndZipCode() {
         return endZipCode;
     }
@@ -110,5 +136,37 @@ public class Directions {
 
     public void setEndRoute(String endRoute) {
         this.endRoute = endRoute;
+    }
+
+    public String getEndCity() {
+        return endCity;
+    }
+
+    public void setEndCity(String endCity) {
+        this.endCity = endCity;
+    }
+
+    public String getEndState() {
+        return endState;
+    }
+
+    public void setEndState(String endState) {
+        this.endState = endState;
+    }
+
+    public String getStartTimeZone() {
+        return startTimeZone;
+    }
+
+    public void setStartTimeZone(String startTimeZone) {
+        this.startTimeZone = startTimeZone;
+    }
+
+    public String getEndTimeZone() {
+        return endTimeZone;
+    }
+
+    public void setEndTimeZone(String endTimeZone) {
+        this.endTimeZone = endTimeZone;
     }
 }
