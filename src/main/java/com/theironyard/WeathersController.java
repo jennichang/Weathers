@@ -15,7 +15,7 @@ import java.util.*;
 import org.json.*;
 
 
-@Controller
+@Controller //change to Rest when done testing
 @EnableAutoConfiguration
 public class WeathersController {
 
@@ -39,7 +39,7 @@ public class WeathersController {
     @RequestMapping(path = "/", method = RequestMethod.POST)
     public String locationInputs(HttpSession session, String startLocation, String endLocation,
                                  String startTime) throws FileNotFoundException, ParseException {
-        Location userLocation = new Location(startLocation, endLocation, "2011-10-05T14:48:00.000Z"); //while testing
+        Location userLocation = new Location(startLocation, endLocation, startTime);
         session.setAttribute("userLocation", userLocation);
 
 
@@ -54,7 +54,7 @@ public class WeathersController {
 
         /** For every step, get information I need **/
         //counter to keep track of time
-        Calendar cal = DatatypeConverter.parseDateTime("2016-10-08T14:48:00.000Z");
+        Calendar cal = DatatypeConverter.parseDateTime("2016-10-08T14:48:00.000Z"); // placeholder until get FE dateTime
 
         for (int i = 0; i < stepsArray.length(); i++) {
 
@@ -129,7 +129,7 @@ public class WeathersController {
 
             Calendar endTimeCal = (Calendar) cal.clone();
             Calendar startTimeCal = (Calendar) cal.clone();
-            endTimeCal.add(Calendar.SECOND, duration); // why does this also add duration to start time?
+            endTimeCal.add(Calendar.SECOND, duration); 
 
 
             //now use the time to get the weather, first convert to time zone
