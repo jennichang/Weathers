@@ -25,7 +25,7 @@ public class WeathersController {
 //        return "Hello World!";
 //    }
 
-    ArrayList<Directions> directionsArray = new ArrayList<>();
+    ArrayList<Step> stepsArray = new ArrayList<>();
 
 
     @CrossOrigin
@@ -42,7 +42,6 @@ public class WeathersController {
         Location userLocation = new Location(startLocation, endLocation, "2011-10-05T14:48:00.000Z"); //while testing
         session.setAttribute("userLocation", userLocation);
 
-        UserStart userStart = new UserStart("00000", "2011-10-05T14:48:00.000Z"); // placeholder zipcode
 
         /** Call Google Driving API **/
 
@@ -55,7 +54,7 @@ public class WeathersController {
 
         /** For every step, get information I need **/
         //counter to keep track of time
-        Calendar cal = DatatypeConverter.parseDateTime("2011-10-05T14:48:00.000Z");
+        Calendar cal = DatatypeConverter.parseDateTime("2016-10-08T14:48:00.000Z");
 
         for (int i = 0; i < stepsArray.length(); i++) {
 
@@ -73,6 +72,7 @@ public class WeathersController {
 
             String distance = JSONParse.objectToString(object, "distance", "text");
 
+
             /** call google geocoding API, feed in start and end lat and long **/
 
             JSONObject geoStart = new JSONObject(GoogleGeocodingAPI.googleGeocodingCall(startLng, startLat));
@@ -80,7 +80,6 @@ public class WeathersController {
 
             JSONArray addressStartComponentsArray = JSONParse.ObjectToArray(geoStartResults, "address_components", 0);
 
-            /** parse json files -- each step end **/
             JSONObject geoEnd = new JSONObject(GoogleGeocodingAPI.googleGeocodingCall(endLng, endLat));
             JSONArray geoEndResults = geoStart.getJSONArray("results");
 
@@ -115,27 +114,29 @@ public class WeathersController {
 
             /** call wunderground geo API, first need to get state, city and timezone **/
 
+            JSONObject geoLookUpStart = new JSONObject(WundergroundAPI.wundergroundGeoLookUpCall(startZipCode));
+            String startCity = JSONParse.objectToString(geoLookUpStart, "location", "city");
+            String startState = JSONParse.objectToString(geoLookUpStart, "location", "state");
+            String startTimeZone = JSONParse.objectToString(geoLookUpStart, "location", "tz_long");
 
-            JSONObject wundergroundStart = new JSONObject(WundergroundAPI.wundergroundCall(startZipCode));
-            String startCity = JSONParse.objectToString(wundergroundStart, "location", "city");
-            String startState = JSONParse.objectToString(wundergroundStart, "location", "state");
-            String startTimeZone = JSONParse.objectToString(wundergroundStart, "location", "tz_long");
 
-
-            JSONObject wundergroundEnd = new JSONObject(WundergroundAPI.wundergroundCall(endZipCode));
-            String endCity = JSONParse.objectToString(wundergroundStart, "location", "city");
-            String endState = JSONParse.objectToString(wundergroundStart, "location", "state");
-            String endTimeZone = JSONParse.objectToString(wundergroundStart, "location", "tz_long");
+            JSONObject geoLookupEnd = new JSONObject(WundergroundAPI.wundergroundGeoLookUpCall(endZipCode));
+            String endCity = JSONParse.objectToString(geoLookupEnd, "location", "city");
+            String endState = JSONParse.objectToString(geoLookupEnd, "location", "state");
+            String endTimeZone = JSONParse.objectToString(geoLookupEnd, "location", "tz_long");
 
             //get start and end time of step:
-            Calendar startTimeCal = cal;
-            Calendar endTimeCal = startTimeCal;
-            endTimeCal.add(Calendar.SECOND, duration);
+
+            Calendar endTimeCal = (Calendar) cal.clone();
+            Calendar startTimeCal = (Calendar) cal.clone();
+            endTimeCal.add(Calendar.SECOND, duration); // why does this also add duration to start time?
+
 
             //now use the time to get the weather, first convert to time zone
 
             String startDateTimeZoned = Time.convertTime(startTimeCal, startTimeZone);
             String endDateTimeZoned = Time.convertTime(endTimeCal, endTimeZone);
+
 
             String startYear = String.valueOf(Time.convertToCalendar(startDateTimeZoned).get(Calendar.YEAR));
             String endYear = String.valueOf(Time.convertToCalendar(endDateTimeZoned).get(Calendar.YEAR));
@@ -149,9 +150,53 @@ public class WeathersController {
             String startHour = String.valueOf(Time.roundHour(Time.convertToCalendar(startDateTimeZoned)));
             String endHour = String.valueOf(Time.roundHour(Time.convertToCalendar(endDateTimeZoned)));
 
+            //now we can finally get the weather.
 
-            cal = endTimeCal;
+            JSONObject wundergroundStart = new JSONObject(WundergroundAPI.wundergroundCall(startState, startCity));
+            JSONArray wundergroundStarArray = wundergroundStart.getJSONArray("hourly_forecast");
 
+            String wConditionStart = "";
+            String wTempStart = "";
+
+            for (int l = 0; l < wundergroundStarArray.length(); l++) {
+                JSONObject tempObject = wundergroundStarArray.getJSONObject(l);
+                String test =  JSONParse.objectToString(tempObject, "FCTTIME", "mon_padded");
+//                if (JSONParse.objectToString(tempObject, "FCTTIME", "mon_padded") == startMonth &&
+//                        JSONParse.objectToString(tempObject, "FCTTIME", "year") == startYear &&
+//                        JSONParse.objectToString(tempObject, "FCTTIME", "mday_padded") == startDate &&
+//                        JSONParse.objectToString(tempObject, "FCTTIME", "hour_padded") == startHour) {
+
+//                    wConditionStart = tempObject.getString("condition");
+//                    wTempStart = String.valueOf(tempObject.getDouble("temp"));
+
+                //}
+
+            }
+
+            String wConditionEnd = "";
+            String wTempEnd = "";
+
+            for (int m = 0; m < wundergroundStarArray.length(); m++) {
+                JSONObject tempObject = wundergroundStarArray.getJSONObject(m);
+                if (JSONParse.objectToString(tempObject, "FCTTIME", "mon_padded") == endMonth &&
+                        JSONParse.objectToString(tempObject, "FCTTIME", "year") == endYear &&
+                        JSONParse.objectToString(tempObject, "FCTTIME", "mday_padded") == endDate &&
+                        JSONParse.objectToString(tempObject, "FCTTIME", "hour_padded") == endHour) {
+
+                    wConditionEnd = tempObject.getString("condition");
+                    wTempEnd = String.valueOf(tempObject.getDouble("temp"));
+
+                }
+
+            }
+
+            cal = (Calendar) endTimeCal.clone();
+
+            Step step = new Step(distance, duration, startDateTimeZoned, endDateTimeZoned, startCity, endCity,
+                    startState, endState, startRoute, endRoute, startMonth, endMonth, startYear, endYear,
+                    startDate, endDate, startHour, endHour, wConditionStart, wConditionEnd, wTempStart, wTempEnd);
+
+            stepsArray.put(step);
 
         }
 
