@@ -1,10 +1,12 @@
-package com.theironyard;
+package com.theironyard.routing.entities;
 
 
 public class LatLong {
+    private double lat;
+    private double lng;
 
-    double lat;
-    double lng;
+    public LatLong() {
+    }
 
     public LatLong(double lat, double lng) {
         this.lat = lat;

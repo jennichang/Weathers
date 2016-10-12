@@ -1,7 +1,6 @@
 package com.theironyard;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
+import com.theironyard.routing.entities.GoogleRouteData;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
@@ -12,7 +11,7 @@ import java.util.Map;
  */
 public class GoogleDrivingAPI {
 
-    public static String googleDrivingCall(String startLocation, String endLocation) {
+    public static GoogleRouteData getRouteFromGoogle(String startLocation, String endLocation) {
 
         RestTemplate restTemplate = new RestTemplate();
         Map<String, String> vars = new HashMap<>();
@@ -20,10 +19,10 @@ public class GoogleDrivingAPI {
         vars.put("startingLocation", startLocation);
         vars.put("endingLocation", endLocation);
         vars.put("APIKey", "AIzaSyASODlUfJtSvv-LqhnprK2jcaJ_rbThy9E");
-        String result = restTemplate
+        GoogleRouteData result = restTemplate
                 .getForObject(
                         "https://maps.googleapis.com/maps/api/directions/json?origin={startingLocation}&destination={endingLocation}&key={APIKey}",
-                        String.class, vars);
+                        GoogleRouteData.class, vars);
 
         return result;
     }
