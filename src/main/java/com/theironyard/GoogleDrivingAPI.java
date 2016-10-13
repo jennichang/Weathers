@@ -11,7 +11,7 @@ import java.util.Map;
  */
 public class GoogleDrivingAPI {
 
-    public static GoogleRouteData getRouteFromGoogle(String startLocation, String endLocation) {
+    public static GoogleRouteData getRouteFromGoogle(long startTime, String startLocation, String endLocation) {
 
         RestTemplate restTemplate = new RestTemplate();
         Map<String, String> vars = new HashMap<>();
@@ -19,9 +19,10 @@ public class GoogleDrivingAPI {
         vars.put("startingLocation", startLocation);
         vars.put("endingLocation", endLocation);
         vars.put("APIKey", "AIzaSyASODlUfJtSvv-LqhnprK2jcaJ_rbThy9E");
+        vars.put("departure_time", String.valueOf(startTime));
         GoogleRouteData result = restTemplate
                 .getForObject(
-                        "https://maps.googleapis.com/maps/api/directions/json?origin={startingLocation}&destination={endingLocation}&key={APIKey}",
+                        "https://maps.googleapis.com/maps/api/directions/json?&departure_time={departure_time}&origin={startingLocation}&destination={endingLocation}&key={APIKey}",
                         GoogleRouteData.class, vars);
 
         return result;

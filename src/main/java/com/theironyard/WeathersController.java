@@ -2,6 +2,10 @@ package com.theironyard;
 
 
 import com.theironyard.routing.entities.GoogleRouteData;
+import com.theironyard.routing.entities.Step;
+import com.theironyard.viewmodel.RouteWeatherViewModel;
+import com.theironyard.weather.DarkSky;
+import com.theironyard.weather.WeatherAPI;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -10,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
 @RestController
@@ -27,8 +32,33 @@ public class WeathersController {
 
     @CrossOrigin
     @RequestMapping(path = "/", method = RequestMethod.GET)
-    public GoogleRouteData homePage(String startLocation, String endLocation) {
-        return GoogleDrivingAPI.getRouteFromGoogle(startLocation, endLocation);
+    public List<RouteWeatherViewModel> homePage(String startTime, String startLocation, String endLocation) throws Exception {
+        GoogleRouteData data = GoogleDrivingAPI.getRouteFromGoogle(Long.valueOf(startTime), startLocation, endLocation);
+
+        List<RouteWeatherViewModel> routeWeather = new ArrayList<>();
+        WeatherAPI weatherApi = new DarkSky();
+
+        if (data.getStatus().equals("OK")) {
+            List<Step> steps = data.getRoutes().get(0).getLegs().get(0).getSteps();
+
+            long epoch = Long.valueOf(startTime);
+
+            for (Step step: steps) {
+                RouteWeatherViewModel rwvm = new RouteWeatherViewModel();
+
+                rwvm.setStep(step);
+                rwvm.setEpochTime(epoch);
+                rwvm.setWeather(weatherApi.getWeatherAtTime(step.getStart(), epoch));
+
+                routeWeather.add(rwvm);
+
+                epoch += Long.valueOf(step.getDuration().getValue());
+            }
+        } else {
+            throw new Exception("Error code returned from Google.");
+        }
+
+        return routeWeather;
     }
 
 //    @CrossOrigin

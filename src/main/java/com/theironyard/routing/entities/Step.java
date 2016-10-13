@@ -13,7 +13,6 @@ public class Step {
     private LatLong start;
     private LatLong end;
 
-
     @JsonCreator
     public Step(
             @JsonProperty("start_location") LatLong start,
