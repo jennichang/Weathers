@@ -6,6 +6,15 @@ package com.theironyard.weather.entities;
 public class CurrentWeatherData {
     private String icon;
     private String summary;
+    private long temperature;
+
+    public long getTemperature() {
+        return temperature;
+    }
+
+    public void setTemperature(long temperature) {
+        this.temperature = temperature;
+    }
 
     public String getIcon() {
         return icon;

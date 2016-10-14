@@ -32,4 +32,5 @@ public class Weather {
     public void setCurrently(CurrentWeatherData currently) {
         this.currently = currently;
     }
+
 }

@@ -6,6 +6,7 @@ import com.theironyard.routing.entities.Step;
 import com.theironyard.viewmodel.RouteWeatherViewModel;
 import com.theironyard.weather.DarkSky;
 import com.theironyard.weather.WeatherAPI;
+import com.theironyard.weather.entities.Weather;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +20,8 @@ import java.util.List;
 
 @RestController
 public class WeathersController {
+
+    private static final long MAX_DISTANCE_DELTA = 160000;
     ArrayList<Step> stepsArray = new ArrayList<>();
 
     @Autowired
@@ -38,21 +41,31 @@ public class WeathersController {
         List<RouteWeatherViewModel> routeWeather = new ArrayList<>();
         WeatherAPI weatherApi = new DarkSky();
 
+        Weather lastWeather = null;
+
         if (data.getStatus().equals("OK")) {
             List<Step> steps = data.getRoutes().get(0).getLegs().get(0).getSteps();
 
             long epoch = Long.valueOf(startTime);
+            long distanceDelta = 0;
 
             for (Step step: steps) {
+
+                if (lastWeather == null || distanceDelta > MAX_DISTANCE_DELTA) {
+                    lastWeather = weatherApi.getWeatherAtTime(step.getStart(), epoch);
+                    distanceDelta = 0;
+                }
+
                 RouteWeatherViewModel rwvm = new RouteWeatherViewModel();
 
                 rwvm.setStep(step);
                 rwvm.setEpochTime(epoch);
-                rwvm.setWeather(weatherApi.getWeatherAtTime(step.getStart(), epoch));
+                rwvm.setWeather(lastWeather);
 
                 routeWeather.add(rwvm);
 
                 epoch += Long.valueOf(step.getDuration().getValue());
+                distanceDelta += Long.valueOf(step.getDistance().getValue());
             }
         } else {
             throw new Exception("Error code returned from Google.");
