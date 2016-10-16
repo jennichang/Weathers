@@ -53,6 +53,8 @@ public class WeathersController {
 
                 if (lastWeather == null || distanceDelta > MAX_DISTANCE_DELTA) {
                     lastWeather = weatherApi.getWeatherAtTime(step.getStart(), epoch);
+
+                    convertWeatherIcons(lastWeather);
                     distanceDelta = 0;
                 }
 
@@ -72,6 +74,45 @@ public class WeathersController {
         }
 
         return routeWeather;
+    }
+
+    private static void convertWeatherIcons(Weather weather) {
+        String weatherIcon = "";
+
+        switch (weather.getCurrently().getIcon()) {
+            case "clear-day":
+                weatherIcon = "wi-day-sunny";
+                break;
+            case "clear-night":
+                weatherIcon = "wi-night-clear";
+                break;
+            case "rain":
+                weatherIcon = "wi-rain";
+                break;
+            case "snow":
+                weatherIcon = "wi-snow";
+                break;
+            case "sleet":
+                weatherIcon = "wi-sleet";
+                break;
+            case "wind":
+                weatherIcon = "wi-strong-wind";
+                break;
+            case "fog":
+                weatherIcon = "wi-fog";
+                break;
+            case "cloudy":
+                weatherIcon = "wi-cloudy";
+                break;
+            case "partly-cloudy-day":
+                weatherIcon = "wi-day-cloudy";
+                break;
+            case "partly-cloudy-night":
+                weatherIcon = "wi-night-alt-cloudy";
+                break;
+        }
+
+        weather.getCurrently().setIcon(weatherIcon);
     }
 
 //    @CrossOrigin
