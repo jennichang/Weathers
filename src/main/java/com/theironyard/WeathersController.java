@@ -2,6 +2,7 @@ package com.theironyard;
 
 
 import com.theironyard.routing.entities.GoogleRouteData;
+import com.theironyard.routing.entities.LatLong;
 import com.theironyard.routing.entities.Step;
 import com.theironyard.viewmodel.RouteWeatherViewModel;
 import com.theironyard.weather.DarkSky;
@@ -16,11 +17,11 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 
 @RestController
 public class WeathersController {
-
     private static final long MAX_DISTANCE_DELTA = 160000;
     ArrayList<Step> stepsArray = new ArrayList<>();
 
@@ -39,9 +40,8 @@ public class WeathersController {
         GoogleRouteData data = GoogleDrivingAPI.getRouteFromGoogle(Long.valueOf(startTime), startLocation, endLocation);
 
         List<RouteWeatherViewModel> routeWeather = new ArrayList<>();
-        WeatherAPI weatherApi = new DarkSky();
 
-        Weather lastWeather = null;
+        List<Weather> lastWeathers = null;
 
         if (data.getStatus().equals("OK")) {
             List<Step> steps = data.getRoutes().get(0).getLegs().get(0).getSteps();
@@ -51,10 +51,10 @@ public class WeathersController {
 
             for (Step step: steps) {
 
-                if (lastWeather == null || distanceDelta > MAX_DISTANCE_DELTA) {
-                    lastWeather = weatherApi.getWeatherAtTime(step.getStart(), epoch);
+                if (lastWeathers == null || distanceDelta > MAX_DISTANCE_DELTA) {
+                    lastWeathers = getWeathersForStep(step, epoch);
 
-                    convertWeatherIcons(lastWeather);
+                    lastWeathers.forEach(WeathersController::convertWeatherIcons);
                     distanceDelta = 0;
                 }
 
@@ -62,7 +62,7 @@ public class WeathersController {
 
                 rwvm.setStep(step);
                 rwvm.setEpochTime(epoch);
-                rwvm.setWeather(lastWeather);
+                rwvm.setWeathers(lastWeathers);
 
                 routeWeather.add(rwvm);
 
@@ -74,6 +74,45 @@ public class WeathersController {
         }
 
         return routeWeather;
+    }
+
+    private static List<Weather> getWeathersForStep(Step step, long startEpoch) {
+        List<Weather> results = new ArrayList<>();
+        WeatherAPI weatherApi = new DarkSky();
+        int distance = Integer.valueOf(step.getDistance().getValue());
+
+        long duration = Long.valueOf(step.getDuration().getValue());
+        // get distance / max distance delta
+        int checkPoints = distance / (int)MAX_DISTANCE_DELTA;
+
+        // add start weather
+        results.add(weatherApi.getWeatherAtTime(step.getStart(), startEpoch));
+
+        // add each weather at checkpoint
+        IntStream.range(1, checkPoints).forEach(i -> {
+            // ignore last checkPoint
+            if (i < checkPoints - 1) {
+                float percentComplete =  (float)i / checkPoints;
+                long percentEpoch = startEpoch + (long)(percentComplete * duration);
+                LatLong location = getLocationAtPercentage(step.getStart(), step.getEnd(), percentComplete);
+
+                results.add(weatherApi.getWeatherAtTime(location, percentEpoch));
+            }
+        });
+
+        return results;
+    }
+
+    private static LatLong getLocationAtPercentage(LatLong start, LatLong end, float percent) {
+        double latDiff = start.getLat() - end.getLat();
+        double longDiff = start.getLng() - end.getLng();
+        double lng = start.getLng();
+        double lat = start.getLat();
+
+        lng += longDiff < 0 ? -percent * longDiff : percent * longDiff;
+        lat += latDiff < 0 ? -percent * latDiff : percent * latDiff;
+
+        return new LatLong(lat, lng);
     }
 
     private static void convertWeatherIcons(Weather weather) {

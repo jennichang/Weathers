@@ -3,12 +3,14 @@ package com.theironyard.viewmodel;
 import com.theironyard.routing.entities.Step;
 import com.theironyard.weather.entities.Weather;
 
+import java.util.List;
+
 /**
  * Created by Ben on 10/12/16.
  */
 public class RouteWeatherViewModel {
     private Step step;
-    private Weather weather;
+    private List<Weather> weathers;
     private long epochTime;
 
     public Step getStep() {
@@ -19,12 +21,12 @@ public class RouteWeatherViewModel {
         this.step = step;
     }
 
-    public Weather getWeather() {
-        return weather;
+    public List<Weather> getWeathers() {
+        return weathers;
     }
 
-    public void setWeather(Weather weather) {
-        this.weather = weather;
+    public void setWeathers(List<Weather> weathers) {
+        this.weathers = weathers;
     }
 
     public long getEpochTime() {
