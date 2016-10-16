@@ -89,15 +89,12 @@ public class WeathersController {
         results.add(weatherApi.getWeatherAtTime(step.getStart(), startEpoch));
 
         // add each weather at checkpoint
-        IntStream.range(1, checkPoints).forEach(i -> {
-            // ignore last checkPoint
-            if (i < checkPoints - 1) {
-                float percentComplete =  (float)i / checkPoints;
-                long percentEpoch = startEpoch + (long)(percentComplete * duration);
-                LatLong location = getLocationAtPercentage(step.getStart(), step.getEnd(), percentComplete);
+        IntStream.range(1, checkPoints - 1).forEach(i -> {
+            float percentComplete =  (float)i / checkPoints;
+            long percentEpoch = startEpoch + (long)(percentComplete * duration);
+            LatLong location = getLocationAtPercentage(step.getStart(), step.getEnd(), percentComplete);
 
-                results.add(weatherApi.getWeatherAtTime(location, percentEpoch));
-            }
+            results.add(weatherApi.getWeatherAtTime(location, percentEpoch));
         });
 
         return results;
