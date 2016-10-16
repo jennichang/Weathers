@@ -51,7 +51,7 @@ public class WeathersController {
 
             for (Step step: steps) {
 
-                if (lastWeathers == null || distanceDelta > MAX_DISTANCE_DELTA) {
+                if (lastWeathers == null || distanceDelta > MAX_DISTANCE_DELTA || Long.valueOf(step.getDistance().getValue()) > MAX_DISTANCE_DELTA * 2) {
                     lastWeathers = getWeathersForStep(step, epoch);
 
                     lastWeathers.forEach(WeathersController::convertWeatherIcons);
